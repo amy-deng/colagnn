@@ -43,12 +43,13 @@ class cola_gnn(nn.Module):
         self.wb = Parameter(torch.Tensor(1))
         self.k = args.k
         self.conv = nn.Conv1d(1, self.k, self.w)
-        self.conv_long = nn.Conv1d(1, self.k, self.w-self.k, dilation=2)
-        self.n_spatial = args.hidsp #self.h  ####### check equal to k
-
-        self.conv1 = GraphConvLayer(self.k*3, self.n_hidden) # self.k
+        long_kernal = self.w//2
+        self.conv_long = nn.Conv1d(self.x_h, self.k, long_kernal, dilation=2)
+        long_out = self.w-2*(long_kernal-1)
+        self.n_spatial = 10  
+        self.conv1 = GraphConvLayer((1+long_out)*self.k, self.n_hidden) # self.k
         self.conv2 = GraphConvLayer(self.n_hidden, self.n_spatial)
-
+ 
         if args.rnn_model == 'LSTM':
             self.rnn = nn.LSTM( input_size=self.x_h, hidden_size=self.n_hidden, num_layers=args.n_layer, dropout=args.dropout, batch_first=True, bidirectional=args.bi)
         elif args.rnn_model == 'GRU':
@@ -59,7 +60,6 @@ class cola_gnn(nn.Module):
             raise LookupError (' only support LSTM, GRU and RNN')
 
         hidden_size = (int(args.bi) + 1) * self.n_hidden
-        # self.n_hidden = hidden_size BIDIRECTIONAL BUG
         self.out = nn.Linear(hidden_size + self.n_spatial, 1)  
 
         self.residual_window = 0
@@ -90,13 +90,10 @@ class cola_gnn(nn.Module):
         last_hid = r_out[:,-1,:]
         last_hid = last_hid.view(-1,self.m, self.n_hidden)
         out_temporal = last_hid  # [b, m, 20]
-        # print(last_hid.shape,'====')
         hid_rpt_m = last_hid.repeat(1,self.m,1).view(b,self.m,self.m,self.n_hidden) # b,m,m,w continuous m
         hid_rpt_w = last_hid.repeat(1,1,self.m).view(b,self.m,self.m,self.n_hidden) # b,m,m,w continuous w one window data
         a_mx = self.act( hid_rpt_m @ self.W1.t()  + hid_rpt_w @ self.W2.t() + self.b1 ) @ self.V + self.bv # row, all states influence one state 
-        before_norm = a_mx.cpu().detach().numpy() ## save 
         a_mx = F.normalize(a_mx, p=2, dim=1, eps=1e-12, out=None)
-        after_norm = a_mx.cpu().detach().numpy() ## save
         r_l = []
         r_long_l = []
         h_mids = orig_x
@@ -115,7 +112,6 @@ class cola_gnn(nn.Module):
         adjs = adjs.view(b,self.m, self.m)
         c = torch.sigmoid(a_mx @ self.Wb + self.wb)
         a_mx = adjs * c + a_mx * (1-c) 
-        after_norm2 = a_mx.cpu().detach().numpy() ## save
         adj = a_mx 
         x = r_l  
         x = F.relu(self.conv1(x, adj))
