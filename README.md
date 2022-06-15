@@ -4,7 +4,7 @@ This is the source code for paper [Cola-GNN: Cross-location Attention based Grap
 
 
 ## Raw Data
-The datasets are in in the `data` folder. For each dataset, there are two files defined. For example, for the `Japan-prefecture` dataset, we have two files:
+The raw dataset are in in the `data` folder. For each dataset, there are two files defined. For example, for the `Japan-prefecture` dataset, we have two files:
 - `japan.txt` includes the spatiotemporal data. Columns indicate locations (i.e., prefecture) and rows indicate timestamps (i.e., weeks). Each value is the number of patients in a location at a time point. The data are arranged in chronological order.
 - `japan-adj.txt` contains a adjacency matrix.
 
