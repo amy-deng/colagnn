@@ -10,8 +10,8 @@ The datasets are in in the `data` folder. For each dataset, there are two files 
 
 
 ## Training Data
-The training data are processed by the ==DataBasicLoader==
-class in the `src/data.py` file. We can set different value for historical window size ==args.window== and horizon/leadtime ==args.horizon==. Setting ==args.window=20, args.horizon=2== means using data from the previous 20 weeks to predict the next week. There are some functions in this class:
-- ==_split== split the data into training/validation/test sets.
-- ==_batchify== generates data samples. Each sample contains a time series input with length equal to ==args.window==, and a value for the output. For the current code, there are overlaps in the inputs of different samples.
-- ==get_batches== generates random mini-batches for training.
+The training data are processed by the **DataBasicLoader**
+class in the `src/data.py` file. We can set different value for historical window size **args.window** and horizon/leadtime **args.horizon**. Setting **args.window=20, args.horizon=1/2** means using data from the previous 20 weeks to predict the *upcoming*/*next* week. There are some functions in this class:
+- **_split** splits the data into training/validation/test sets.
+- **_batchify** generates data samples. Each sample contains a time series input with length equal to **args.window**, and a value for the output. For the current code, there are overlaps in the inputs of different samples.
+- **get_batches** generates random mini-batches for training.
